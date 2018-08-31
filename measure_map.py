@@ -14,6 +14,7 @@ from keras_frcnn import roi_helpers
 from keras_frcnn import data_generators
 from sklearn.metrics import average_precision_score
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def get_map(pred, gt, f):
     T = {}
@@ -86,7 +87,7 @@ parser.add_option("--config_filename", dest="config_filename", help=
 "Location to read the metadata related to the training (generated when training).",
                   default="config.pickle")
 parser.add_option("-o", "--parser", dest="parser", help="Parser to use. One of simple or pascal_voc",
-                  default="pascal_voc"),
+                  default="oxford_pet"),
 
 (options, args) = parser.parse_args()
 
@@ -97,6 +98,8 @@ if options.parser == 'pascal_voc':
     from keras_frcnn.pascal_voc_parser import get_data
 elif options.parser == 'simple':
     from keras_frcnn.simple_parser import get_data
+elif options.parser == 'oxford_pet':
+    from keras_frcnn.oxford_pet_parser import get_data
 else:
     raise ValueError("Command line option parser must be one of 'pascal_voc' or 'simple'")
 
