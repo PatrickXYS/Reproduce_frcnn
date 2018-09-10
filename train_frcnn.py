@@ -22,9 +22,9 @@ parser = OptionParser()
 
 parser.add_option("-p", "--path", dest="train_path", help="Path to training data.")
 parser.add_option("-o", "--parser", dest="parser", help="Parser to use. One of simple or pascal_voc",
-                  default="oxford_pet")
+                  default="pascal_voc")
 parser.add_option("-n", "--num_rois", type="int", dest="num_rois", help="Number of RoIs to process at once.",
-                  default=4)  # 32
+                  default=32)  # 32
 parser.add_option("--network", dest="network", help="Base network to use. Supports vgg or resnet50.",
                   default='vgg')
 parser.add_option("--hf", dest="horizontal_flips", help="Augment with horizontal flips in training. (Default=false).",
@@ -72,7 +72,6 @@ if options.network == 'vgg':
     from keras_frcnn import vgg as nn
 elif options.network == 'resnet50':
     from keras_frcnn import resnet as nn
-
     C.network = 'resnet50'
 else:
     print('Not a valid model')
@@ -160,7 +159,7 @@ model_classifier.compile(optimizer=optimizer_classifier,
                          metrics={'dense_class_{}'.format(len(classes_count)): 'accuracy'})
 model_all.compile(optimizer='sgd', loss='mae')
 
-epoch_length = 10 # 1000
+epoch_length = 10  # 1000
 num_epochs = int(options.num_epochs)
 iter_num = 0
 
