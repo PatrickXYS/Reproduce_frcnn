@@ -142,8 +142,8 @@ def apply_regr_np(X, T):
         cx1 = tx * w + cx
         cy1 = ty * h + cy
 
-        w1 = np.exp(tw.astype(np.float64)) * w
-        h1 = np.exp(th.astype(np.float64)) * h
+        w1 = np.exp(tw.astype(np.float128)) * w
+        h1 = np.exp(th.astype(np.float128)) * h
         x1 = cx1 - w1 / 2.
         y1 = cy1 - h1 / 2.
 

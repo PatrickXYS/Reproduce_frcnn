@@ -21,8 +21,11 @@ def get_data(input_path):
 
         annot_path = os.path.join(data_path, 'Annotations')
         imgs_path = os.path.join(data_path, 'JPEGImages')
+
         imgsets_path_trainval = os.path.join(data_path, 'ImageSets', 'Main', 'trainval.txt')
         imgsets_path_test = os.path.join(data_path, 'ImageSets', 'Main', 'test.txt')
+
+        #imgsets_path_trainval = os.path.join(data_path, 'ImageSets', 'Main', 'test.txt')
 
         trainval_files = []
         test_files = []

@@ -16,11 +16,13 @@ from keras import backend as K
 from keras_frcnn.RoiPoolingConv import RoiPoolingConv
 from keras_frcnn.FixedBatchNormalization import FixedBatchNormalization
 
+
 def get_weight_path():
     if K.image_dim_ordering() == 'th':
         return 'resnet50_weights_th_dim_ordering_th_kernels_notop.h5'
     else:
         return 'resnet50_weights_tf_dim_ordering_tf_kernels.h5'
+
 
 def get_img_output_length(width, height):
     def get_output_length(input_length):
@@ -34,6 +36,7 @@ def get_img_output_length(width, height):
         return input_length
 
     return get_output_length(width), get_output_length(height) 
+
 
 def identity_block(input_tensor, kernel_size, filters, stage, block, trainable=True):
 
@@ -91,6 +94,7 @@ def identity_block_td(input_tensor, kernel_size, filters, stage, block, trainabl
     x = Activation('relu')(x)
 
     return x
+
 
 def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2), trainable=True):
 
@@ -152,6 +156,7 @@ def conv_block_td(input_tensor, kernel_size, filters, stage, block, input_shape,
     x = Add()([x, shortcut])
     x = Activation('relu')(x)
     return x
+
 
 def nn_base(input_tensor=None, trainable=False):
 
@@ -224,6 +229,7 @@ def rpn(base_layers,num_anchors):
     x_regr = Convolution2D(num_anchors * 4, (1, 1), activation='linear', kernel_initializer='zero', name='rpn_out_regress')(x)
 
     return [x_class, x_regr, base_layers]
+
 
 def classifier(base_layers, input_rois, num_rois, nb_classes = 21, trainable=False):
 

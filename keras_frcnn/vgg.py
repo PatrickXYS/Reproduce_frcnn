@@ -9,6 +9,7 @@ from __future__ import division
 
 import warnings
 
+from keras.initializers import RandomNormal
 from keras.models import Model
 from keras.layers import Flatten, Dense, Input, Conv2D, MaxPooling2D, Dropout
 from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D, TimeDistributed
@@ -87,17 +88,21 @@ def nn_base(input_tensor=None, trainable=False):
 
 def rpn(base_layers, num_anchors):
 
-    x = Conv2D(512, (3, 3), padding='same', activation='relu', kernel_initializer='normal', name='rpn_conv1')(base_layers)
+    kernel_init = RandomNormal(mean=0,stddev=0.01)
 
-    x_class = Conv2D(num_anchors, (1, 1), activation='sigmoid', kernel_initializer='uniform', name='rpn_out_class')(x)
-    x_regr = Conv2D(num_anchors * 4, (1, 1), activation='linear', kernel_initializer='zero', name='rpn_out_regress')(x)
+    x = Conv2D(512, (3, 3), padding='same', activation='relu', kernel_initializer=kernel_init, name='rpn_conv1')(base_layers)
+
+    x_class = Conv2D(num_anchors, (1, 1), activation='sigmoid', kernel_initializer=kernel_init, name='rpn_out_class')(x)
+    x_regr = Conv2D(num_anchors * 4, (1, 1), activation='linear', kernel_initializer=kernel_init, name='rpn_out_regress')(x)
 
     return [x_class, x_regr, base_layers]
 
 
-def classifier(base_layers, input_rois, num_rois, nb_classes = 21, trainable=False):
+def classifier(base_layers, input_rois, num_rois, nb_classes = 21, trainable=True):
 
     # compile times on theano tend to be very high, so we use smaller ROI pooling regions to workaround
+
+    kernel_init = RandomNormal(mean=0,stddev=0.01)
 
     if K.backend() == 'tensorflow':
         pooling_regions = 7
@@ -114,9 +119,9 @@ def classifier(base_layers, input_rois, num_rois, nb_classes = 21, trainable=Fal
     out = TimeDistributed(Dense(4096, activation='relu', name='fc2'))(out)
     out = TimeDistributed(Dropout(0.5))(out)
 
-    out_class = TimeDistributed(Dense(nb_classes, activation='softmax', kernel_initializer='zero'), name='dense_class_{}'.format(nb_classes))(out)
+    out_class = TimeDistributed(Dense(nb_classes, activation='softmax', kernel_initializer=kernel_init), name='dense_class_{}'.format(nb_classes))(out)
     # note: no regression target for bg class
-    out_regr = TimeDistributed(Dense(4 * (nb_classes-1), activation='linear', kernel_initializer='zero'), name='dense_regress_{}'.format(nb_classes))(out)
+    out_regr = TimeDistributed(Dense(4 * (nb_classes-1), activation='linear', kernel_initializer=kernel_init), name='dense_regress_{}'.format(nb_classes))(out)
 
     return [out_class, out_regr]
 
