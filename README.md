@@ -1,10 +1,10 @@
-#**FRCNN for Object Detection**
+# **FRCNN for Object Detection**
 ***
 By Yao Xiao
 
 Virginia Tech
 
-##**Use Pre-trained Model To Predict**
+## **Use Pre-trained Model To Predict**
 ***
 
 Use pre-trained model to predict images. You can simply use command line under ./Reproduce_frcnn directory: 
@@ -13,7 +13,7 @@ Use pre-trained model to predict images. You can simply use command line under .
 
 If you want to use your own images, you can import your images into ./img directory. Then use the above command sentences.
 
-##**Train Your Own Model**
+## **Train Your Own Model**
 ***
 
 You need to first download Pascal_VOC dataset or COCO dataset from:
