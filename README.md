@@ -1,5 +1,4 @@
-# **FRCNN for Object Detection**
-
+# **Keras FRCNN for Object Detection**
 By Yao Xiao
 
 Virginia Tech
@@ -53,3 +52,12 @@ You need to put .h5 file under ./Reprouduce_frcnn directory
 After training you can check your results by running following commands:
 
     python test_frcnn.py -p ./img
+
+## License and Citation
+
+> @article{He2015,
+	author = {Kaiming He and Xiangyu Zhang and Shaoqing Ren and Jian Sun},
+	title = {Deep Residual Learning for Image Recognition},
+	journal = {arXiv preprint arXiv:1512.03385},
+	year = {2015}
+}
