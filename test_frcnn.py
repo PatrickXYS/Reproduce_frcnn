@@ -6,12 +6,16 @@ import sys
 import pickle
 from optparse import OptionParser
 import time
+import tensorflow as tf
 from keras_frcnn import config
 from keras import backend as K
 from keras.layers import Input
 from keras.models import Model
 from keras_frcnn import roi_helpers
 
+tf.logging.set_verbosity(tf.logging.ERROR)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+K.set_learning_phase(0)
 sys.setrecursionlimit(40000)
 
 parser = OptionParser()
@@ -23,7 +27,7 @@ parser.add_option("--config_filename", dest="config_filename", help=
 "Location to read the metadata related to the training (generated when training).",
                   default="config.pickle")
 parser.add_option("--network", dest="network", help="Base network to use. Supports vgg or resnet50.",
-                  default='resnet50')
+                  default='vgg')
 
 (options, args) = parser.parse_args()
 

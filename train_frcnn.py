@@ -6,7 +6,9 @@ import time
 import numpy as np
 from optparse import OptionParser
 import pickle
-
+import os
+import tensorflow as tf
+from keras.callbacks import TensorBoard
 from keras import backend as K
 from keras.optimizers import Adam, SGD, RMSprop
 from keras.layers import Input
@@ -15,7 +17,23 @@ from keras_frcnn import config, data_generators
 from keras_frcnn import losses as losses
 import keras_frcnn.roi_helpers as roi_helpers
 from keras.utils import generic_utils
+import shutil
 
+
+def write_log(callback, names, logs, batch_no):
+    for name, value in zip(names, logs):
+        summary = tf.Summary()
+        summary_value = summary.value.add()
+        summary_value.simple_value = value
+        summary_value.tag = name
+        callback.writer.add_summary(summary, batch_no)
+        callback.writer.flush()
+
+
+shutil.rmtree("./logs")
+tf.logging.set_verbosity(tf.logging.ERROR)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+K.set_learning_phase(1)
 sys.setrecursionlimit(40000)
 
 parser = OptionParser()
@@ -34,7 +52,7 @@ parser.add_option("--vf", dest="vertical_flips", help="Augment with vertical fli
 parser.add_option("--rot", "--rot_90", dest="rot_90",
                   help="Augment with 90 degree rotations in training. (Default=false).",
                   action="store_true", default=False)
-parser.add_option("--num_epochs", type="int", dest="num_epochs", help="Number of epochs.", default=20)  #2000
+parser.add_option("--num_epochs", type="int", dest="num_epochs", help="Number of epochs.", default=800)  #2000
 parser.add_option("--config_filename", dest="config_filename", help=
 "Location to store all the metadata related to the training (to be used when testing).",
                   default="config.pickle")
@@ -143,6 +161,20 @@ model_classifier = Model([img_input, roi_input], classifier)
 # this is a model that holds both the RPN and the classifier, used to load/save weights for the models
 model_all = Model([img_input, roi_input], rpn[:2] + classifier)
 
+
+
+log_rpn_path = './logs/rpn'
+log_cls_path = './logs/cls'
+
+callback_rpn = TensorBoard(log_rpn_path)
+callback_rpn.set_model(model_rpn)
+train_rpn_names = ['rpn_loss','rpn_cls','rpn_rgr']
+
+callback_cls = TensorBoard(log_cls_path)
+callback_cls.set_model(model_classifier)
+train_cls_names = ['cls_loss','cls_cls','cls_rgr']
+
+
 try:
     print('loading weights from {}'.format(C.base_net_weights))
     model_rpn.load_weights(C.base_net_weights, by_name=True)
@@ -151,15 +183,15 @@ except:
     print('Could not load pretrained model weights. Weights can be found in the keras application folder \
 		https://github.com/fchollet/keras/tree/master/keras/applications')
 
-optimizer = Adam(lr=1e-5)
-optimizer_classifier = Adam(lr=1e-5)
+optimizer = SGD(lr=0.0008,momentum=0.9,decay=0.0005)
+optimizer_classifier = SGD(lr=0.0008,momentum=0.9,decay=0.0005)
 model_rpn.compile(optimizer=optimizer, loss=[losses.rpn_loss_cls(num_anchors), losses.rpn_loss_regr(num_anchors)])
 model_classifier.compile(optimizer=optimizer_classifier,
                          loss=[losses.class_loss_cls, losses.class_loss_regr(len(classes_count) - 1)],
                          metrics={'dense_class_{}'.format(len(classes_count)): 'accuracy'})
 model_all.compile(optimizer='sgd', loss='mae')
 
-epoch_length = 10  # 1000
+epoch_length = 100  # 1000
 num_epochs = int(options.num_epochs)
 iter_num = 0
 
@@ -196,10 +228,12 @@ for epoch_num in range(num_epochs):
 
             loss_rpn = model_rpn.train_on_batch(X, Y)
 
+            write_log(callback_rpn,train_rpn_names,loss_rpn[:3],epoch_num*epoch_length+iter_num)
+
             P_rpn = model_rpn.predict_on_batch(X)
 
             R = roi_helpers.rpn_to_roi(P_rpn[0], P_rpn[1], C, K.image_dim_ordering(), use_regr=True, overlap_thresh=0.7,
-                                       max_boxes=300)
+                                       max_boxes=2000)
             # note: calc_iou converts from (x1,y1,x2,y2) to (x,y,w,h) format
             X2, Y1, Y2, IouS = roi_helpers.calc_iou(R, img_data, C, class_mapping)
 
@@ -248,6 +282,8 @@ for epoch_num in range(num_epochs):
 
             loss_class = model_classifier.train_on_batch([X, X2[:, sel_samples, :]],
                                                          [Y1[:, sel_samples, :], Y2[:, sel_samples, :]])
+
+            write_log(callback_cls,train_cls_names,loss_class[:3],epoch_num*epoch_length+iter_num)
 
             losses[iter_num, 0] = loss_rpn[1]
             losses[iter_num, 1] = loss_rpn[2]

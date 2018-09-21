@@ -6,7 +6,8 @@ import pickle
 from optparse import OptionParser
 import time
 from keras_frcnn import config
-import keras_frcnn.resnet as nn
+import tensorflow as tf
+import keras_frcnn.vgg as nn
 from keras import backend as K
 from keras.layers import Input
 from keras.models import Model
@@ -14,7 +15,10 @@ from keras_frcnn import roi_helpers
 from keras_frcnn import data_generators
 from sklearn.metrics import average_precision_score
 
+tf.logging.set_verbosity(tf.logging.ERROR)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+K.set_learning_phase(0)
+
 
 def get_map(pred, gt, f):
     T = {}
@@ -87,7 +91,7 @@ parser.add_option("--config_filename", dest="config_filename", help=
 "Location to read the metadata related to the training (generated when training).",
                   default="config.pickle")
 parser.add_option("-o", "--parser", dest="parser", help="Parser to use. One of simple or pascal_voc",
-                  default="oxford_pet"),
+                  default="pascal_voc"),
 
 (options, args) = parser.parse_args()
 
@@ -152,12 +156,17 @@ print(class_mapping)
 class_to_color = {class_mapping[v]: np.random.randint(0, 255, 3) for v in class_mapping}
 C.num_rois = int(options.num_rois)
 
+if C.network == 'resnet50':
+    num_features = 1024
+elif C.network == 'vgg':
+    num_features = 512
+
 if K.image_dim_ordering() == 'th':
     input_shape_img = (3, None, None)
-    input_shape_features = (1024, None, None)
+    input_shape_features = (num_features, None, None)
 else:
     input_shape_img = (None, None, 3)
-    input_shape_features = (None, None, 1024)
+    input_shape_features = (None, None, num_features)
 
 img_input = Input(shape=input_shape_img)
 roi_input = Input(shape=(C.num_rois, 4))
@@ -184,7 +193,7 @@ model_rpn.compile(optimizer='sgd', loss='mse')
 model_classifier.compile(optimizer='sgd', loss='mse')
 
 all_imgs, _, _ = get_data(options.test_path)
-test_imgs = [s for s in all_imgs if s['imageset'] == 'test']
+test_imgs = [s for s in all_imgs if s['imageset'] == 'trainval']
 
 T = {}
 P = {}
