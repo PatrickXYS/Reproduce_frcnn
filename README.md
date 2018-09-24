@@ -26,24 +26,24 @@ You need to put dataset under ./Reprouduce_frcnn directory
 
 To train your own model, you can use vgg16, resnet50 or resnet101.
 
-* 1 Vgg16 pre-trained weights: 
+* Vgg16 pre-trained weights: 
 
     https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg16_weights_tf_dim_ordering_tf_kernels.h5
 
-* 2 Resnet50 pre-trained weights:
+* Resnet50 pre-trained weights:
     
     https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_tf_dim_ordering_tf_kernels.h5
 
-* 3  Resnet101 pre-trained weights:
+* Resnet101 pre-trained weights:
 
     https://github.com/keras-team/keras-applications/releases/download/resnet/resnet101_weights_tf_dim_ordering_tf_kernels.h5
 
 You need to put .h5 file under ./Reprouduce_frcnn directory
-* 1 Pascal_VOC dataset training:
+* Pascal_VOC dataset training:
 
         python train_frcnn.py -p ./VOCdevkit/
 
-* 2 COCO dataset training:
+* COCO dataset training:
 
         python train_frcnn.py -p ./coco/
 
