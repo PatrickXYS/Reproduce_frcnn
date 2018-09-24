@@ -16,9 +16,8 @@ This is a practical Faster RCNN's implementation based on Keras. For details you
 * scipy
 ## Installation
 Git clone the repository:
-> git clone https://github.com/PatrickXYS/Reproduce_frcnn.git
 
-
+    git clone https://github.com/PatrickXYS/Reproduce_frcnn.git
 ## **Use Pre-trained Model To Predict**
 
 Use pre-trained model to predict images. You can simply use command line under ./Reproduce_frcnn directory: 
