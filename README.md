@@ -15,11 +15,11 @@ If you want to use your own images, you can import your images into ./img direct
 
 You need to first download Pascal_VOC dataset or COCO dataset from:
 
-* 1 Pascal_VOC 2012: 
+* Pascal_VOC 2012: 
 
     http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar   
 
-* 2 COCO 2014: 
+* COCO 2014: 
     http://images.cocodataset.org/zips/train2014.zip
 
 You need to put dataset under ./Reprouduce_frcnn directory
