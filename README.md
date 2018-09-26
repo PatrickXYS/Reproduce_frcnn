@@ -6,7 +6,7 @@ Virginia Tech
 This is a practical Faster RCNN's implementation based on Keras. For details you can read this paper: [Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks
 ](http://papers.nips.cc/paper/5638-faster-r-cnn-towards-real-time-object-detection-with-region-proposal-networks)
 
-![Img_example](https://cl.ly/89095ee94516)
+![](https://github.com/PatrickXYS/Reproduce_frcnn/raw/master/img/img_screenshot_26.09.2018.png)
 ## Requirements:
 1. Install [Keras](https://keras.io/#installation)
 2. Python packages: 
