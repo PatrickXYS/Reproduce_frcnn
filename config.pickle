@@ -95,7 +95,7 @@ p32
 F0.7
 sS'network'
 p33
-S'vgg'
+S'resnet101'
 p34
 sS'img_channel_mean'
 p35
@@ -129,7 +129,7 @@ p45
 I32
 sS'base_net_weights'
 p46
-S'vgg16_weights_tf_dim_ordering_tf_kernels.h5'
+S'resnet101_weights_tf_dim_ordering_tf_kernels.h5'
 p47
 sS'anchor_box_scales'
 p48

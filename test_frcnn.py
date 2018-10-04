@@ -12,7 +12,12 @@ from keras import backend as K
 from keras.layers import Input
 from keras.models import Model
 from keras_frcnn import roi_helpers
+from matplotlib import pyplot as plt
+import shutil
 
+if os.path.exists('./test_results'):
+    shutil.rmtree("./test_results")
+os.makedirs('./test_results')
 tf.logging.set_verbosity(tf.logging.ERROR)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 K.set_learning_phase(0)
@@ -27,7 +32,7 @@ parser.add_option("--config_filename", dest="config_filename", help=
 "Location to read the metadata related to the training (generated when training).",
                   default="config.pickle")
 parser.add_option("--network", dest="network", help="Base network to use. Supports vgg or resnet50.",
-                  default='vgg')
+                  default='resnet101')
 
 (options, args) = parser.parse_args()
 
@@ -43,6 +48,8 @@ if C.network == 'resnet50':
     import keras_frcnn.resnet as nn
 elif C.network == 'vgg':
     import keras_frcnn.vgg as nn
+elif C.network == 'resnet101':
+    import keras_frcnn.resnet101 as nn
 
 # turn off any data augmentation at test time
 C.use_horizontal_flips = False
@@ -113,6 +120,8 @@ if C.network == 'resnet50':
     num_features = 1024
 elif C.network == 'vgg':
     num_features = 512
+elif C.network == 'resnet101':
+    num_features = 1024
 
 if K.image_dim_ordering() == 'th':
     input_shape_img = (3, None, None)
@@ -158,6 +167,7 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
     if not img_name.lower().endswith(('.bmp', '.jpeg', '.jpg', '.png', '.tif', '.tiff')):
         continue
     print(img_name)
+    img_without_end = img_name.split('.png')
     st = time.time()
     filepath = os.path.join(img_path, img_name)
 
@@ -237,7 +247,7 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
             cv2.rectangle(img, (real_x1, real_y1), (real_x2, real_y2),
                           (int(class_to_color[key][0]), int(class_to_color[key][1]), int(class_to_color[key][2])), 2)
 
-            textLabel = '{}: {}'.format(key, int(100 * new_probs[jk]))
+            textLabel = '{}'.format(key)
             all_dets.append((key, 100 * new_probs[jk]))
 
             (retval, baseLine) = cv2.getTextSize(textLabel, cv2.FONT_HERSHEY_COMPLEX, 1, 1)
@@ -251,6 +261,8 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
 
     print('Elapsed time = {}'.format(time.time() - st))
     print(all_dets)
-    cv2.imshow('img', img)
-    cv2.waitKey(0)
-# cv2.imwrite('./results_imgs/{}.png'.format(idx),img)
+    # Use matplotlib
+    plt.imshow(img)
+    plt.xticks([]), plt.yticks([])
+    plt.show()
+    cv2.imwrite('./test_results/{}_test.png'.format(img_without_end), img)

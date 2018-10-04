@@ -30,7 +30,9 @@ def write_log(callback, names, logs, batch_no):
         callback.writer.flush()
 
 
-shutil.rmtree("./logs")
+if os.path.exists('./logs'):
+    shutil.rmtree("./logs")
+os.makedirs('./logs')
 tf.logging.set_verbosity(tf.logging.ERROR)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 K.set_learning_phase(1)
@@ -44,7 +46,7 @@ parser.add_option("-o", "--parser", dest="parser", help="Parser to use. One of s
 parser.add_option("-n", "--num_rois", type="int", dest="num_rois", help="Number of RoIs to process at once.",
                   default=32)  # 32
 parser.add_option("--network", dest="network", help="Base network to use. Supports vgg or resnet50.",
-                  default='vgg')
+                  default='resnet101')
 parser.add_option("--hf", dest="horizontal_flips", help="Augment with horizontal flips in training. (Default=false).",
                   action="store_true", default=False)
 parser.add_option("--vf", dest="vertical_flips", help="Augment with vertical flips in training. (Default=false).",
@@ -91,6 +93,9 @@ if options.network == 'vgg':
 elif options.network == 'resnet50':
     from keras_frcnn import resnet as nn
     C.network = 'resnet50'
+elif options.network == 'resnet101':
+    from keras_frcnn import resnet101 as nn
+    C.network == 'resnet101'
 else:
     print('Not a valid model')
     raise ValueError
@@ -161,8 +166,6 @@ model_classifier = Model([img_input, roi_input], classifier)
 # this is a model that holds both the RPN and the classifier, used to load/save weights for the models
 model_all = Model([img_input, roi_input], rpn[:2] + classifier)
 
-
-
 log_rpn_path = './logs/rpn'
 log_cls_path = './logs/cls'
 
@@ -174,17 +177,17 @@ callback_cls = TensorBoard(log_cls_path)
 callback_cls.set_model(model_classifier)
 train_cls_names = ['cls_loss','cls_cls','cls_rgr']
 
-
 try:
     print('loading weights from {}'.format(C.base_net_weights))
     model_rpn.load_weights(C.base_net_weights, by_name=True)
     model_classifier.load_weights(C.base_net_weights, by_name=True)
 except:
-    print('Could not load pretrained model weights. Weights can be found in the keras application folder \
-		https://github.com/fchollet/keras/tree/master/keras/applications')
+    raise ImportError('Could not load pretrained model weights')
 
-optimizer = SGD(lr=0.0008,momentum=0.9,decay=0.0005)
-optimizer_classifier = SGD(lr=0.0008,momentum=0.9,decay=0.0005)
+# opt is okay
+optimizer = Adam(lr=1e-5)
+# opt_cls lr should be smaller 2e-5
+optimizer_classifier = Adam(lr=3e-5)
 model_rpn.compile(optimizer=optimizer, loss=[losses.rpn_loss_cls(num_anchors), losses.rpn_loss_regr(num_anchors)])
 model_classifier.compile(optimizer=optimizer_classifier,
                          loss=[losses.class_loss_cls, losses.class_loss_regr(len(classes_count) - 1)],
