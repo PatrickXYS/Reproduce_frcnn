@@ -20,6 +20,14 @@ from keras.utils import generic_utils
 import shutil
 
 
+def train_nec_paras():
+    paras = {'network':'resnet101',
+             'dataset':'pascal_voc',
+             'num_epochs':800,
+             'num_length':100}
+    return paras
+
+
 def write_log(callback, names, logs, batch_no):
     for name, value in zip(names, logs):
         summary = tf.Summary()
@@ -37,42 +45,20 @@ tf.logging.set_verbosity(tf.logging.ERROR)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 K.set_learning_phase(1)
 sys.setrecursionlimit(40000)
+train_neccessary_paras = train_nec_paras()
 
 parser = OptionParser()
 
 parser.add_option("-p", "--path", dest="train_path", help="Path to training data.")
-parser.add_option("-o", "--parser", dest="parser", help="Parser to use. One of simple or pascal_voc",
-                  default="pascal_voc")
-parser.add_option("-n", "--num_rois", type="int", dest="num_rois", help="Number of RoIs to process at once.",
-                  default=32)  # 32
-parser.add_option("--network", dest="network", help="Base network to use. Supports vgg or resnet50.",
-                  default='resnet101')
-parser.add_option("--hf", dest="horizontal_flips", help="Augment with horizontal flips in training. (Default=false).",
-                  action="store_true", default=False)
-parser.add_option("--vf", dest="vertical_flips", help="Augment with vertical flips in training. (Default=false).",
-                  action="store_true", default=False)
-parser.add_option("--rot", "--rot_90", dest="rot_90",
-                  help="Augment with 90 degree rotations in training. (Default=false).",
-                  action="store_true", default=False)
-parser.add_option("--num_epochs", type="int", dest="num_epochs", help="Number of epochs.", default=800)  #2000
-parser.add_option("--config_filename", dest="config_filename", help=
-"Location to store all the metadata related to the training (to be used when testing).",
-                  default="config.pickle")
-parser.add_option("--output_weight_path", dest="output_weight_path", help="Output path for weights.",
-                  default='./model_frcnn.hdf5')
-parser.add_option("--input_weight_path", dest="input_weight_path",
-                  help="Input path for weights. If not specified, will try to load default weights provided by keras.")
 
 (options, args) = parser.parse_args()
 
 if not options.train_path:  # if filename is not given
     parser.error('Error: path to training data must be specified. Pass --path to command line')
 
-if options.parser == 'pascal_voc':
+if train_neccessary_paras['dataset'] == 'pascal_voc':
     from keras_frcnn.pascal_voc_parser import get_data
-elif options.parser == 'simple':
-    from keras_frcnn.simple_parser import get_data
-elif options.parser == 'oxford_pet':
+elif train_neccessary_paras['dataset'] == 'oxford_pet':
     from keras_frcnn.oxford_pet_parser import get_data
 else:
     raise ValueError("Command line option parser must be one of 'pascal_voc' or 'simple'")
@@ -80,32 +66,22 @@ else:
 # pass the settings from the command line, and persist them in the config object
 C = config.Config()
 
-C.use_horizontal_flips = bool(options.horizontal_flips)
-C.use_vertical_flips = bool(options.vertical_flips)
-C.rot_90 = bool(options.rot_90)
-
-C.model_path = options.output_weight_path
-C.num_rois = int(options.num_rois)
-
-if options.network == 'vgg':
+if train_neccessary_paras['network'] == 'vgg':
     C.network = 'vgg'
     from keras_frcnn import vgg as nn
-elif options.network == 'resnet50':
+elif train_neccessary_paras['network']  == 'resnet50':
     from keras_frcnn import resnet as nn
     C.network = 'resnet50'
-elif options.network == 'resnet101':
+elif train_neccessary_paras['network']  == 'resnet101':
     from keras_frcnn import resnet101 as nn
-    C.network == 'resnet101'
+    C.network = 'resnet101'
 else:
     print('Not a valid model')
     raise ValueError
 
 # check if weight path was passed via command line
-if options.input_weight_path:
-    C.base_net_weights = options.input_weight_path
-else:
-    # set the path to weights based on backend and model
-    C.base_net_weights = nn.get_weight_path()
+# set the path to weights based on backend and model
+C.base_net_weights = nn.get_weight_path()
 
 all_imgs, classes_count, class_mapping = get_data(options.train_path)
 
@@ -121,7 +97,7 @@ print('Training images per class:')
 pprint.pprint(classes_count)
 print('Num classes (including bg) = {}'.format(len(classes_count)))
 
-config_output_filename = options.config_filename
+config_output_filename = C.config_filename
 
 with open(config_output_filename, 'wb') as config_f:
     pickle.dump(C, config_f)
@@ -194,8 +170,8 @@ model_classifier.compile(optimizer=optimizer_classifier,
                          metrics={'dense_class_{}'.format(len(classes_count)): 'accuracy'})
 model_all.compile(optimizer='sgd', loss='mae')
 
-epoch_length = 100  # 1000
-num_epochs = int(options.num_epochs)
+epoch_length = train_neccessary_paras['num_length']
+num_epochs = train_neccessary_paras['num_epochs']
 iter_num = 0
 
 losses = np.zeros((epoch_length, 5))
