@@ -78,4 +78,11 @@ After training you can check your results by running following commands:
 	year = {2015}
 }
 
-> Thanks for yheon's keras frcnn implementation.
+> @inproceedings{renNIPS15fasterrcnn,
+    Author = {Shaoqing Ren and Kaiming He and Ross Girshick and Jian Sun},
+    Title = {Faster {R-CNN}: Towards Real-Time Object Detection
+             with Region Proposal Networks},
+    Booktitle = {Advances in Neural Information Processing Systems ({NIPS})},
+    Year = {2015}
+}
+}
